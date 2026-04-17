@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FULLPOWER ジャッジサポート</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --card-bg: #1a1a1a;
+    --accent: #f7c948;
+    --text: #e0e0e0;
+    --muted: #888;
+    --link: #5dade2;
+    --input-bg: #252525;
+    --border: #444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg); color: var(--text);
+    height: 100dvh; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: #111; padding: 8px 14px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+  }
+  .header .logo {
+    width: 24px; height: 24px; background: var(--accent);
+    border-radius: 5px; display: flex; justify-content: center;
+    align-items: center; font-weight: 900; color: #111; font-size: 10px;
+  }
+  .header h1 { font-size: 14px; font-weight: 700; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .last-updated { font-size: 10px; color: var(--muted); }
+  .count { font-size: 10px; color: var(--muted); }
+  .update-btn {
+    background: none; border: 1px solid #444;
+    color: var(--muted); font-size: 10px;
+    padding: 3px 8px; border-radius: 5px;
+    cursor: pointer; font-family: inherit;
+  }
+  .update-btn:active { background: #333; }
+  .update-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* Search form */
+  .search-form {
+    background: #111; padding: 10px 14px;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .form-row { display: flex; gap: 8px; }
+  .form-field { flex: 1; position: relative; }
+  .form-field label {
+    font-size: 10px; color: var(--muted); font-weight: 700;
+    display: block; margin-bottom: 3px; letter-spacing: 0.5px;
+  }
+  .form-field input, .form-field select {
+    width: 100%; background: var(--input-bg); border: 1px solid var(--border);
+    color: var(--text); font-size: 14px;
+    padding: 8px 10px; border-radius: 8px;
+    outline: none; font-family: inherit;
+    -webkit-appearance: none;
+  }
+  .form-field select {
+    padding-right: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  .form-field input:focus, .form-field select:focus { border-color: var(--accent); }
+
+  /* Autocomplete */
+  .autocomplete {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: #222; border: 1px solid var(--border);
+    border-radius: 0 0 8px 8px; max-height: 180px;
+    overflow-y: auto; z-index: 100;
+    display: none;
+  }
+  .autocomplete.show { display: block; }
+  .ac-item {
+    padding: 8px 10px; font-size: 13px; cursor: pointer;
+    border-bottom: 1px solid #333;
+  }
+  .ac-item:active, .ac-item.selected { background: #333; }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-match { color: var(--accent); font-weight: 700; }
+
+  /* Search button */
+  .search-btn {
+    background: var(--accent); color: #111;
+    border: none; padding: 10px; border-radius: 8px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: inherit; width: 100%;
+  }
+
+  /* Results */
+  .results {
+    flex: 1; overflow-y: auto; padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .section-label {
+    font-size: 10px; color: var(--muted); font-weight: 700;
+    padding: 6px 0 2px; letter-spacing: 1px;
+  }
+  .result-item {
+    display: block; padding: 10px 12px;
+    background: var(--card-bg);
+    border-radius: 8px; text-decoration: none;
+    color: var(--text); border-left: 3px solid var(--link);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .result-item:active { background: #252525; }
+  .result-item .r-id {
+    font-size: 10px; color: var(--accent); font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .result-item .r-text { font-size: 13px; color: #ccc; line-height: 1.5; }
+  .result-item.rule { border-left-color: #27ae60; }
+  .result-item.rule .r-id { color: #27ae60; }
+
+  .expand-btn {
+    background: none; border: none;
+    color: var(--link); font-size: 11px;
+    cursor: pointer; padding: 4px 0 0;
+    font-family: inherit; display: block;
+  }
+
+  .no-result {
+    text-align: center; color: var(--muted);
+    font-size: 13px; padding: 20px;
+  }
+  .hint {
+    text-align: center; color: var(--muted);
+    font-size: 11px; padding: 16px 8px; line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">FP</div>
+  <h1>ジャッジサポート</h1>
+  <div class="header-right">
+    <span class="last-updated" id="lastUpdated"></span>
+    <span class="count" id="dataCount">読込中...</span>
+    <button class="update-btn" id="updateBtn" onclick="loadData(true)">更新</button>
+  </div>
+</div>
+
+<div class="search-form">
+  <div class="form-row">
+    <div class="form-field">
+      <label>カード名</label>
+      <input type="text" id="cardName" placeholder="部分一致で検索" autocomplete="off">
+      <div class="autocomplete" id="cardAc"></div>
+    </div>
+    <div class="form-field">
+      <label>カード名2</label>
+      <input type="text" id="cardName2" placeholder="2枚目（任意）" autocomplete="off">
+      <div class="autocomplete" id="cardAc2"></div>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-field">
+      <label>キーワード能力</label>
+      <select id="keyword">
+        <option value="">選択なし</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label>タイミング</label>
+      <select id="timing">
+        <option value="">選択なし</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-field">
+      <label>フリーワード</label>
+      <input type="text" id="freeword" placeholder="その他のキーワード">
+    </div>
+  </div>
+  <button class="search-btn" onclick="doSearch()">検索</button>
+</div>
+
+<div class="results" id="results">
+  <div class="hint">
+    カード名やキーワード能力を入力して検索<br>
+    公式QA・総合ルールを検索します
+  </div>
+</div>
+
+<script>
+const resultsEl = document.getElementById('results');
+const dataCount = document.getElementById('dataCount');
+
+let qaData = [];
+let rulesData = [];
+let cardNames = [];
+
+const RAW_BASE = './';
+const LS = { qa: 'fp_qa', rules: 'fp_rules', cards: 'fp_cards', ts: 'fp_ts' };
+
+// キーワード能力リスト（公式キーワードのみ）
+const KEYWORD_ABILITIES = [
+  'EXライフ',
+  'G・ストライク',
+  'Wブレイカー', 'Tブレイカー', 'Qブレイカー', 'ワールド・ブレイカー',
+  'O・ドライブ',
+  'S・トリガー', 'S・バック',
+  'アンブロッカブル',
+  'ジャストダイバー',
+  'スピードアタッカー',
+  'スレイヤー',
+  'ニンジャ・ストライク',
+  'パワーアタッカー',
+  'フシギバース',
+  'ブロッカー',
+  'マッハ・ファイター',
+  'マナ武装',
+  'メテオバーン',
+  'シンパシー',
+  '侵略',
+  '革命チェンジ',
+];
+
+const TIMINGS = [
+  '出た時', '攻撃する時', '攻撃の終わり',
+  'ターンのはじめ', 'ターンの終わり',
+  '破壊された時', '離れた時',
+  'バトルに勝った時', 'バトルに負けた時',
+  '唱えた時', '召喚した時',
+  'ブロックした時', 'ブロックされた時',
+  'タップした時', 'アンタップした時',
+  'シールドブレイク時',
+];
+
+function initSelects() {
+  const kwSelect = document.getElementById('keyword');
+  KEYWORD_ABILITIES.forEach(kw => {
+    const opt = document.createElement('option');
+    opt.value = kw; opt.textContent = kw;
+    kwSelect.appendChild(opt);
+  });
+  const tmSelect = document.getElementById('timing');
+  TIMINGS.forEach(tm => {
+    const opt = document.createElement('option');
+    opt.value = tm; opt.textContent = tm;
+    tmSelect.appendChild(opt);
+  });
+}
+initSelects();
+
+// データ読み込み（localStorageキャッシュ → GitHub Raw → ローカルフォールバック）
+async function loadData(forceRefresh = false) {
+  const btn = document.getElementById('updateBtn');
+  if (btn) { btn.textContent = '取得中...'; btn.disabled = true; }
+
+  if (!forceRefresh) {
+    try {
+      const qa = localStorage.getItem(LS.qa);
+      const rules = localStorage.getItem(LS.rules);
+      const cards = localStorage.getItem(LS.cards);
+      if (qa && rules && cards) {
+        qaData = JSON.parse(qa);
+        rulesData = JSON.parse(rules);
+        cardNames = JSON.parse(cards);
+        updateStatus(localStorage.getItem(LS.ts));
+        if (btn) { btn.textContent = '更新'; btn.disabled = false; }
+        return;
+      }
+    } catch(e) { /* キャッシュ破損 → 再取得 */ }
+  }
+
+  try {
+    const [qa, rules, cards] = await Promise.all([
+      fetch(RAW_BASE + 'qa_data_fixed.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch(RAW_BASE + 'rules_data.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch(RAW_BASE + 'card_names.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+    ]);
+    qaData = qa; rulesData = rules; cardNames = cards;
+    const ts = new Date().toLocaleDateString('ja-JP');
+    try {
+      localStorage.setItem(LS.qa, JSON.stringify(qa));
+      localStorage.setItem(LS.rules, JSON.stringify(rules));
+      localStorage.setItem(LS.cards, JSON.stringify(cards));
+      localStorage.setItem(LS.ts, ts);
+    } catch(e) { /* 容量超過など無視 */ }
+    updateStatus(ts);
+  } catch(e) {
+    // フォールバック：ローカルファイル
+    try {
+      const [qa, rules, cards] = await Promise.all([
+        fetch('qa_data_fixed.json').then(r => r.json()),
+        fetch('rules_data.json').then(r => r.json()),
+        fetch('card_names.json').then(r => r.json()),
+      ]);
+      qaData = qa; rulesData = rules; cardNames = cards;
+      try {
+        localStorage.setItem(LS.qa, JSON.stringify(qa));
+        localStorage.setItem(LS.rules, JSON.stringify(rules));
+        localStorage.setItem(LS.cards, JSON.stringify(cards));
+        localStorage.setItem(LS.ts, 'ローカル');
+      } catch(_) {}
+      updateStatus('ローカル');
+    } catch(e2) {
+      dataCount.textContent = '読込エラー';
+    }
+  }
+
+  if (btn) { btn.textContent = '更新'; btn.disabled = false; }
+}
+
+function updateStatus(ts) {
+  dataCount.textContent = `QA:${qaData.length} / ルール:${rulesData.length}`;
+  const el = document.getElementById('lastUpdated');
+  if (el && ts) el.textContent = ts;
+}
+
+loadData();
+
+// テキスト正規化
+function normalize(text) {
+  return text
+    .replace(/[・・]/g, '')
+    .replace(/[〜～]/g, '')
+    .replace(/\s+/g, '')
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .toLowerCase();
+}
+
+// オートコンプリート
+function setupAutocomplete(inputId, acId) {
+  const input = document.getElementById(inputId);
+  const ac = document.getElementById(acId);
+  let selectedIdx = -1;
+
+  input.addEventListener('input', () => {
+    const val = input.value.trim();
+    if (val.length < 1) { ac.classList.remove('show'); return; }
+
+    const norm = normalize(val);
+    const matches = cardNames
+      .filter(name => normalize(name).includes(norm))
+      .slice(0, 15);
+
+    if (matches.length === 0) { ac.classList.remove('show'); return; }
+
+    selectedIdx = -1;
+    ac.innerHTML = '';
+    matches.forEach((name) => {
+      const div = document.createElement('div');
+      div.className = 'ac-item';
+      const normName = normalize(name);
+      const matchIdx = normName.indexOf(norm);
+      if (matchIdx >= 0) {
+        const before = name.substring(0, matchIdx);
+        const match = name.substring(matchIdx, matchIdx + val.length);
+        const after = name.substring(matchIdx + val.length);
+        div.innerHTML = `${escapeHtml(before)}<span class="ac-match">${escapeHtml(match)}</span>${escapeHtml(after)}`;
+      } else {
+        div.textContent = name;
+      }
+      div.addEventListener('click', () => {
+        input.value = name;
+        ac.classList.remove('show');
+      });
+      ac.appendChild(div);
+    });
+    ac.classList.add('show');
+  });
+
+  input.addEventListener('keydown', (e) => {
+    const items = ac.querySelectorAll('.ac-item');
+    if (!ac.classList.contains('show') || items.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIdx = Math.min(selectedIdx + 1, items.length - 1);
+      items.forEach((it, i) => it.classList.toggle('selected', i === selectedIdx));
+      items[selectedIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIdx = Math.max(selectedIdx - 1, 0);
+      items.forEach((it, i) => it.classList.toggle('selected', i === selectedIdx));
+      items[selectedIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter' && selectedIdx >= 0) {
+      e.preventDefault();
+      input.value = cardNames.filter(n => normalize(n).includes(normalize(input.value)))[selectedIdx] || input.value;
+      ac.classList.remove('show');
+    }
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(() => ac.classList.remove('show'), 200);
+  });
+}
+
+setupAutocomplete('cardName', 'cardAc');
+setupAutocomplete('cardName2', 'cardAc2');
+
+// 検索
+function doSearch() {
+  const card1 = document.getElementById('cardName').value.trim();
+  const card2 = document.getElementById('cardName2').value.trim();
+  const keyword = document.getElementById('keyword').value;
+  const timing = document.getElementById('timing').value;
+  const freeword = document.getElementById('freeword').value.trim();
+
+  // card1は必須フィルタ、それ以外はスコアリング条件
+  const norm1 = card1 ? normalize(card1) : null;
+  const scoringTerms = [];
+  if (card2) scoringTerms.push(card2);
+  if (keyword) scoringTerms.push(keyword);
+  if (timing) scoringTerms.push(timing);
+  if (freeword) {
+    freeword.split(/[\s\u3000]+/).filter(t => t.length >= 1).forEach(t => scoringTerms.push(t));
+  }
+
+  if (!norm1 && scoringTerms.length === 0) return;
+
+  const normalizedScoring = scoringTerms.map(t => normalize(t));
+
+  function scoreItems(items) {
+    // card1が指定されていれば必須フィルタ（部分一致）
+    let pool = items;
+    if (norm1) {
+      pool = items.filter(item => {
+        const target = normalize((item.title || '') + ' ' + item.text);
+        return target.includes(norm1);
+      });
+    }
+
+    if (normalizedScoring.length === 0) {
+      // card1のみ → タイトルにcard1を含むものを優先
+      return pool
+        .sort((a, b) => {
+          const aT = normalize(a.title || '').includes(norm1) ? 1 : 0;
+          const bT = normalize(b.title || '').includes(norm1) ? 1 : 0;
+          return bT - aT;
+        })
+        .slice(0, 10);
+    }
+
+    return pool.map(item => {
+      const target = normalize((item.title || '') + ' ' + item.text);
+      let score = 0;
+      let hitCount = 0;
+      for (const term of normalizedScoring) {
+        const count = target.split(term).length - 1;
+        if (count > 0) {
+          hitCount++;
+          const weight = term.length >= 6 ? 5 : term.length >= 3 ? 2 : 1;
+          score += count * weight;
+        }
+      }
+      if (hitCount === normalizedScoring.length && normalizedScoring.length >= 2) {
+        score *= 3;
+      }
+      return { item, score };
+    })
+    .filter(s => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10)
+    .map(s => s.item);
+  }
+
+  const qaResults = scoreItems(qaData);
+  const ruleResults = scoreItems(rulesData);
+
+  resultsEl.innerHTML = '';
+
+  if (qaResults.length === 0 && ruleResults.length === 0) {
+    resultsEl.innerHTML = '<div class="no-result">該当なし<br>キーワードを変えて検索してください</div>';
+    return;
+  }
+
+  const PREVIEW_LEN = 120;
+
+  // 総合ルール
+  if (ruleResults.length > 0) {
+    const label = document.createElement('div');
+    label.className = 'section-label';
+    label.textContent = `総合ルール (${ruleResults.length}件)`;
+    resultsEl.appendChild(label);
+
+    for (const rule of ruleResults) {
+      const div = document.createElement('div');
+      div.className = 'result-item rule';
+      const text = rule.text;
+      if (text.length <= PREVIEW_LEN) {
+        div.innerHTML = `<div class="r-id">Section ${rule.section}</div><div class="r-text">${escapeHtml(text)}</div>`;
+      } else {
+        div.innerHTML = `
+          <div class="r-id">Section ${rule.section}</div>
+          <div class="r-text">
+            <span class="r-preview">${escapeHtml(text.substring(0, PREVIEW_LEN))}...</span>
+            <span class="r-full" hidden>${escapeHtml(text)}</span>
+            <button class="expand-btn" onclick="toggleRule(this)">もっと見る</button>
+          </div>`;
+      }
+      resultsEl.appendChild(div);
+    }
+  }
+
+  // QA
+  if (qaResults.length > 0) {
+    const label = document.createElement('div');
+    label.className = 'section-label';
+    label.textContent = `公式QA (${qaResults.length}件)`;
+    resultsEl.appendChild(label);
+
+    for (const qa of qaResults) {
+      const a = document.createElement('a');
+      a.className = 'result-item';
+      a.href = qa.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      const title = (qa.title || '').replace(/^Q/, '').trim();
+      const display = title.length > 150 ? title.substring(0, 150) + '...' : title;
+      a.innerHTML = `<div class="r-id">#${qa.id}</div><div class="r-text">${escapeHtml(display)}</div>`;
+      resultsEl.appendChild(a);
+    }
+  }
+
+  resultsEl.scrollTop = 0;
+}
+
+function toggleRule(btn) {
+  const preview = btn.parentElement.querySelector('.r-preview');
+  const full = btn.parentElement.querySelector('.r-full');
+  const expanding = full.hidden;
+  preview.hidden = expanding;
+  full.hidden = !expanding;
+  btn.textContent = expanding ? '閉じる' : 'もっと見る';
+}
+
+function escapeHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Enterキー対応
+document.querySelectorAll('.search-form input').forEach(input => {
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.isComposing) {
+      const ac = input.parentElement.querySelector('.autocomplete');
+      if (ac && ac.classList.contains('show')) return;
+      doSearch();
+    }
+  });
+});
+</script>
+
+</body>
+</html>

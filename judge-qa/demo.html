@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FULLPOWER ジャッジAI</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --chat-bg: #1a1a1a;
+    --user-bg: #2d7dd2;
+    --ai-bg: #252525;
+    --accent: #f7c948;
+    --text: #e0e0e0;
+    --muted: #888;
+    --success: #2ecc71;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg); color: var(--text);
+    height: 100dvh; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: #111; padding: 16px 20px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+  }
+  .header .logo {
+    width: 36px; height: 36px; background: var(--accent);
+    border-radius: 8px; display: flex; justify-content: center;
+    align-items: center; font-weight: 900; color: #111; font-size: 16px;
+  }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header .badge {
+    background: var(--success); color: #111;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; margin-left: auto;
+  }
+
+  /* Chat area */
+  .chat {
+    flex: 1; overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .msg {
+    max-width: 85%; padding: 14px 18px;
+    border-radius: 16px; font-size: 15px;
+    line-height: 1.7; word-break: break-word;
+  }
+  .msg-ai {
+    background: var(--ai-bg); align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+  .msg-user {
+    background: var(--user-bg); color: #fff; align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg-ai .label {
+    font-size: 11px; color: var(--accent); font-weight: 700;
+    margin-bottom: 6px; letter-spacing: 1px;
+  }
+
+  /* AI回答内のスタイル */
+  .msg-ai strong { color: var(--accent); }
+  .msg-ai .qa-ref {
+    display: block; margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid #333;
+    font-size: 13px; color: var(--muted);
+  }
+  .msg-ai .qa-ref a {
+    color: var(--user-bg); text-decoration: none;
+  }
+  .msg-ai .qa-ref a:hover { text-decoration: underline; }
+
+  /* 追加質問 */
+  .msg-ai .followup {
+    margin-top: 10px; padding: 10px 14px;
+    background: rgba(247,201,72,0.08);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    font-size: 14px; color: var(--accent);
+  }
+
+  /* サジェスト */
+  .suggestions {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 0 16px 8px;
+    flex-shrink: 0;
+  }
+  .suggest-btn {
+    background: #252525; border: 1px solid #444;
+    color: var(--text); font-size: 13px;
+    padding: 8px 14px; border-radius: 20px;
+    cursor: pointer; font-family: inherit;
+    transition: background 0.15s;
+  }
+  .suggest-btn:hover { background: #333; }
+
+  /* Input area */
+  .input-area {
+    padding: 12px 16px; background: #111;
+    border-top: 1px solid #333;
+    display: flex; gap: 10px; align-items: center;
+    flex-shrink: 0;
+  }
+  .input-area input {
+    flex: 1; background: #252525; border: 1px solid #444;
+    color: var(--text); font-size: 16px;
+    padding: 12px 16px; border-radius: 24px;
+    outline: none; font-family: inherit;
+  }
+  .input-area input::placeholder { color: #666; }
+  .input-area input:focus { border-color: var(--accent); }
+  .input-area button {
+    background: var(--accent); color: #111;
+    border: none; width: 44px; height: 44px;
+    border-radius: 50%; cursor: pointer;
+    font-size: 20px; font-weight: 900;
+    display: flex; justify-content: center; align-items: center;
+    flex-shrink: 0;
+  }
+
+  /* Typing indicator */
+  .typing { display: flex; gap: 4px; padding: 8px 0; }
+  .typing span {
+    width: 8px; height: 8px; background: #555;
+    border-radius: 50%; animation: blink 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink {
+    0%, 60%, 100% { opacity: 0.3; }
+    30% { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">FP</div>
+  <h1>ジャッジAI</h1>
+  <div class="badge">DEMO</div>
+</div>
+
+<div class="chat" id="chat">
+  <div class="msg msg-ai">
+    <div class="label">JUDGE AI</div>
+    大会中の裁定でお困りですか？<br>
+    状況を教えてください。カード名や効果の内容を含めて質問いただくと、公式QAから類似事例を探して回答します。
+  </div>
+</div>
+
+<div class="suggestions" id="suggestions">
+  <button class="suggest-btn" onclick="sendSuggestion(this)">Sトリガーで出たクリーチャーの出た時効果は使える？</button>
+  <button class="suggest-btn" onclick="sendSuggestion(this)">マナゾーンにカードが同時に置かれる時の処理順は？</button>
+  <button class="suggest-btn" onclick="sendSuggestion(this)">相手ターン中にニンジャストライクで出した時の効果は？</button>
+</div>
+
+<div class="input-area">
+  <input type="text" id="input" placeholder="裁定について質問..." enterkeyhint="send">
+  <button onclick="sendMessage()">&#9654;</button>
+</div>
+
+<script>
+const chat = document.getElementById('chat');
+const input = document.getElementById('input');
+const suggestionsEl = document.getElementById('suggestions');
+
+// デモ用の固定回答
+const demoResponses = {
+  'Sトリガーで出たクリーチャーの出た時効果は使える？': {
+    followup: null,
+    answer: `<strong>はい、使えます。</strong><br><br>
+S・トリガーによってバトルゾーンに出たクリーチャーの「出た時」効果は、通常通りトリガーします。相手のターン中であっても、出た時の能力は発動します。<br><br>
+ただし、<strong>「自分のターン中」に限定された効果</strong>の場合は発動しません。効果テキストに「自分のターンの始めに」等の条件がないか確認してください。
+<div class="qa-ref">
+  参考QA:<br>
+  <a href="https://dm.takaratomy.co.jp/rule/qa/40123/" target="_blank">Q&A #40123 - S・トリガーとcip効果について</a><br>
+  <a href="https://dm.takaratomy.co.jp/rule/qa/41567/" target="_blank">Q&A #41567 - 相手ターン中の出た時効果</a>
+</div>`,
+  },
+  'マナゾーンにカードが同時に置かれる時の処理順は？': {
+    followup: null,
+    answer: `<strong>同時に移動します。</strong><br><br>
+バトルゾーン以外のゾーンに複数のカードが移動する際、それらは<strong>すべて同時に移動</strong>します。1枚ずつ順番に処理するのではなく、一括で処理されます。<br><br>
+例えば《メンデルスゾーン》で山札の上2枚がドラゴンだった場合、2枚同時にマナゾーンに置かれるため、マナの枚数を参照する効果には2枚とも反映されます。
+<div class="qa-ref">
+  参考QA:<br>
+  <a href="https://dm.takaratomy.co.jp/rule/qa/48286/" target="_blank">Q&A #48286 - メンデルスゾーンのマナ移動</a>
+</div>`,
+  },
+  '相手ターン中にニンジャストライクで出した時の効果は？': {
+    followup: `もう少し詳しく教えてください。<br>
+・どのクリーチャーをニンジャストライクで出しましたか？<br>
+・そのクリーチャーの「出た時」効果のテキストを教えてください<br>
+・相手の攻撃中ですか？それともブロック時ですか？`,
+    answer: null,
+  },
+};
+
+// デフォルト回答（未知の質問用）
+const defaultFollowup = `正確な裁定を探すために、もう少し教えてください。<br>
+・関係するカード名は何ですか？<br>
+・どのような盤面の状況ですか？<br>
+・どの効果の処理で迷っていますか？`;
+
+function addMessage(text, type) {
+  const div = document.createElement('div');
+  div.className = `msg msg-${type}`;
+  if (type === 'ai') {
+    div.innerHTML = `<div class="label">JUDGE AI</div>${text}`;
+  } else {
+    div.textContent = text;
+  }
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function showTyping() {
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  div.id = 'typing';
+  div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+function processResponse(question) {
+  showTyping();
+  const match = demoResponses[question];
+
+  setTimeout(() => {
+    removeTyping();
+
+    if (match) {
+      if (match.followup) {
+        addMessage(`<div class="followup">${match.followup}</div>`, 'ai');
+      } else {
+        addMessage(match.answer, 'ai');
+      }
+    } else {
+      addMessage(`<div class="followup">${defaultFollowup}</div>`, 'ai');
+    }
+  }, 1200);
+}
+
+function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
+
+  addMessage(text, 'user');
+  input.value = '';
+  suggestionsEl.style.display = 'none';
+  processResponse(text);
+}
+
+function sendSuggestion(btn) {
+  const text = btn.textContent;
+  addMessage(text, 'user');
+  suggestionsEl.style.display = 'none';
+  processResponse(text);
+}
+
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') sendMessage();
+});
+</script>
+
+</body>
+</html>

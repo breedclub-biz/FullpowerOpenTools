@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FULL POWER｜デュエルマスターズ 高額買取</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f5; color: #222; }
+    .loading { text-align: center; padding: 60px 20px; font-size: 16px; color: #888; }
+    .loading-spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid #ddd; border-top-color: #222; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-msg { text-align: center; padding: 40px 20px; color: #c00; font-size: 14px; }
+    .header { background: #fff; text-align: center; padding: 20px 16px 14px; border-bottom: 2px solid #eee; }
+    .header-top { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; }
+    .header-logo img { height: 80px; width: auto; }
+    .wanted-title { font-size: 54px; font-weight: 900; color: #cc0000; letter-spacing: 4px; line-height: 1; font-style: italic; text-shadow: 2px 2px 0 #800000; }
+    .header-meta { margin-top: 8px; font-size: 12px; color: #888; }
+    .header-meta .updated-date { font-weight: 700; color: #555; }
+    .search-bar { background: #fff; padding: 10px 16px; display: flex; justify-content: center; border-bottom: 1px solid #eee; }
+    .search-wrap { position: relative; width: 100%; max-width: 480px; }
+    .search-wrap input { width: 100%; padding: 9px 36px 9px 14px; border: 2px solid #ddd; border-radius: 24px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .search-wrap input:focus { border-color: #222; }
+    .search-wrap .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #aaa; font-size: 16px; pointer-events: none; }
+    .search-clear { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; display: none; line-height: 1; }
+    .filter-bar { background: #fff; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; border-bottom: 2px solid #eee; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .filter-btn { padding: 5px 14px; border-radius: 8px; border: 3px solid #000; background: #fff; font-size: 12px; cursor: pointer; font-weight: 700; transition: all 0.15s; color: #555; }
+    .filter-btn.active { background: #222; color: #fff; border-color: #222; }
+    .filter-btn.gp { border-color: #000; color: #e74c3c; }
+    .filter-btn.gp.active { background: #e74c3c; color: #fff; border-color: #e74c3c; }
+    .filter-btn.secret { border-color: #000; color: #9b59b6; }
+    .filter-btn.secret.active { background: #9b59b6; color: #fff; border-color: #9b59b6; }
+    .filter-btn.gold { border-color: #000; color: #f39c12; }
+    .filter-btn.gold.active { background: #f39c12; color: #fff; border-color: #f39c12; }
+    .filter-btn.cs { border-color: #000; color: #27ae60; }
+    .filter-btn.cs.active { background: #27ae60; color: #fff; border-color: #27ae60; }
+    .filter-btn.god { border-color: #000; color: #2980b9; }
+    .filter-btn.god.active { background: #2980b9; color: #fff; border-color: #2980b9; }
+    .filter-btn.promo { border-color: #000; color: #16a085; }
+    .filter-btn.promo.active { background: #16a085; color: #fff; border-color: #16a085; }
+    .filter-btn.other { border-color: #000; color: #7f8c8d; }
+    .filter-btn.other.active { background: #7f8c8d; color: #fff; border-color: #7f8c8d; }
+    .grid-wrap { max-width: 1040px; margin: 0 auto; padding: 16px 12px 32px; }
+    .result-count { text-align: right; font-size: 12px; color: #999; margin-bottom: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 10px; }
+    .card-item { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.08); display: flex; flex-direction: column; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer; }
+    .card-item:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    .card-img { width: 100%; aspect-ratio: 3/4; background: #e8e8e8; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666; position: relative; overflow: hidden; }
+    .card-img img { width: 100%; height: 100%; object-fit: cover; }
+    .card-img .no-image { color: #999; font-size: 10px; text-align: center; padding: 8px; }
+    .card-badges { position: absolute; top: 5px; left: 5px; display: flex; flex-direction: column; gap: 3px; }
+    .badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; color: #fff; opacity: 0.92; }
+    .badge-gp { background: #e74c3c; }
+    .badge-secret { background: #9b59b6; }
+    .badge-gold { background: #f39c12; }
+    .badge-cs { background: #27ae60; }
+    .badge-god { background: #2980b9; }
+    .badge-promo { background: #16a085; }
+    .badge-other { background: #7f8c8d; }
+    .badge-civ { background: rgba(0,0,0,0.5); }
+    .card-info { padding: 6px 8px 8px; background: #fff; }
+    .card-name { font-size: 10px; font-weight: 600; color: #333; line-height: 1.35; margin-bottom: 5px; min-height: 2.7em; }
+    .card-price-wrap { background: #222; border-radius: 4px; text-align: center; padding: 4px 4px 3px; }
+    .card-price { font-size: 18px; font-weight: 900; color: #fff; letter-spacing: -0.5px; line-height: 1; }
+    .card-price .yen { font-size: 12px; font-weight: 700; }
+    .card-updated { font-size: 9px; color: #bbb; text-align: right; margin-top: 4px; }
+    .footer { background: #222; color: #888; text-align: center; padding: 24px 16px; font-size: 12px; margin-top: 16px; }
+    .footer a { color: #fff; text-decoration: none; }
+    .footer .disclaimer { margin-top: 10px; font-size: 11px; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-top">
+      <div class="header-logo"><img src="logo.png" alt="FULL POWER"></div>
+      <div class="wanted-title">WANTED</div>
+    </div>
+    <div class="header-meta">最終更新: <span class="updated-date" id="lastUpdated">読み込み中...</span>｜自動更新（約5分ごと）</div>
+  </div>
+  <div class="search-bar">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="カード名で検索（部分一致）" oninput="onSearch(this)">
+      <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+      <span class="search-icon" id="searchIcon">🔍</span>
+    </div>
+  </div>
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" data-filter="all">すべて</button>
+  </div>
+  <div class="grid-wrap">
+    <div class="result-count" id="resultCount"></div>
+    <div class="grid" id="cardGrid">
+      <div class="loading"><div class="loading-spinner"></div><br>データを読み込んでいます...</div>
+    </div>
+  </div>
+  <div class="footer">
+    <p>CARD SHOP FULL POWER｜秋葉原</p>
+    <p style="margin-top:8px">買取に関するお問い合わせは <a href="#">公式LINE</a> または <a href="#">X (Twitter)</a> まで</p>
+    <p class="disclaimer">在庫数、状態、相場等により予告なく変更となる場合がございます。予めご了承ください。</p>
+  </div>
+  <script>
+    const SHEET_ID = '1KhMZrKqjZqtZVuJ2aC8UlF_xP4b5vbQF15NA-29h-l8';
+    const IMAGE_BASE = '../images/';
+    const RELOAD_INTERVAL = 5 * 60 * 1000;
+    const TYPE_MAP = {
+      'GPプロモ': { badge: 'badge-gp', filter: 'gp' },
+      '金トレジャー': { badge: 'badge-gold', filter: 'gold' },
+      'シークレット': { badge: 'badge-secret', filter: 'secret' },
+      'CSプロモ': { badge: 'badge-cs', filter: 'cs' },
+      '神アート': { badge: 'badge-god', filter: 'god' },
+      'プロモ': { badge: 'badge-promo', filter: 'promo' },
+      'その他': { badge: 'badge-other', filter: 'other' },
+    };
+    let allCards = [];
+    let currentFilter = 'all';
+
+    function parseGVizDate(val) {
+      if (!val) return '';
+      const m = String(val).match(/Date\((\d+),(\d+),(\d+)\)/);
+      if (m) return `${parseInt(m[2]) + 1}/${parseInt(m[3])}`;
+      const m2 = String(val).match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      if (m2) return `${m2[2]}/${m2[3]}`;
+      return String(val);
+    }
+
+    function formatPrice(val) {
+      if (val === '' || val == null) return '–';
+      const num = typeof val === 'number' ? val : parseInt(String(val).replace(/[¥,\s]/g, ''));
+      if (isNaN(num)) return String(val);
+      return num.toLocaleString('ja-JP');
+    }
+
+    function makeCardHTML(card) {
+      const typeInfo = TYPE_MAP[card.type] || { badge: 'badge-other', filter: 'other' };
+      const imgSrc = card.imageFile ? `${IMAGE_BASE}${card.imageFile}.jpg` : '';
+      const imgTag = imgSrc ? `<img src="${imgSrc}" alt="${card.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : '';
+      const noImgStyle = imgSrc ? 'style="display:none"' : 'style="display:flex"';
+      return `<div class="card-item" data-filter="${typeInfo.filter}" data-name="${card.name.toLowerCase()} ${card.type.toLowerCase()}">
+        <div class="card-img">
+          ${imgTag}
+          <div class="no-image" ${noImgStyle}>画像<br>準備中</div>
+          <div class="card-badges">
+            <span class="badge ${typeInfo.badge}">${card.type}</span>
+            ${card.civ ? `<span class="badge badge-civ">${card.civ}</span>` : ''}
+          </div>
+        </div>
+        <div class="card-info">
+          <div class="card-name">${card.name}</div>
+          <div class="card-price-wrap">
+            <div class="card-price"><span class="yen">¥</span>${formatPrice(card.price)}</div>
+          </div>
+          <div class="card-updated">更新: ${card.updated}</div>
+        </div>
+      </div>`;
+    }
+
+    function buildFilterBar(cards) {
+      const counts = { all: cards.length };
+      cards.forEach(c => {
+        const f = (TYPE_MAP[c.type] || { filter: 'other' }).filter;
+        counts[f] = (counts[f] || 0) + 1;
+      });
+      const bar = document.getElementById('filterBar');
+      bar.innerHTML = `<button class="filter-btn active" data-filter="all">すべて (${counts.all})</button>`;
+      const order = ['gp','secret','gold','cs','god','promo','other'];
+      const labels = { gp:'GPプロモ', secret:'シークレット', gold:'金トレジャー', cs:'CSプロモ', god:'神アート', promo:'プロモ', other:'その他' };
+      order.forEach(f => {
+        if (!counts[f]) return;
+        bar.innerHTML += `<button class="filter-btn ${f}" data-filter="${f}">${labels[f]} (${counts[f]})</button>`;
+      });
+      bar.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          currentFilter = this.dataset.filter;
+          renderCards();
+        });
+      });
+    }
+
+    function renderCards() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      const grid = document.getElementById('cardGrid');
+      const visible = allCards.filter(card => {
+        const fMatch = currentFilter === 'all' || (TYPE_MAP[card.type] || { filter: 'other' }).filter === currentFilter;
+        const sMatch = !q || card.name.toLowerCase().includes(q) || card.type.toLowerCase().includes(q);
+        return fMatch && sMatch;
+      });
+      grid.innerHTML = visible.length ? visible.map(makeCardHTML).join('') : '<div class="loading">該当するカードがありません</div>';
+      document.getElementById('resultCount').textContent = q ? `「${document.getElementById('searchInput').value}」：${visible.length}件` : `${visible.length}件表示中`;
+    }
+
+    function fetchSheetData() {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        const timer = setTimeout(() => { cleanup(); reject(new Error('タイムアウト（12秒）')); }, 12000);
+        function cleanup() {
+          clearTimeout(timer);
+          if (script.parentNode) script.parentNode.removeChild(script);
+          if (window.google?.visualization?.Query) { delete window.google.visualization.Query.setResponse; }
+        }
+        window.google = window.google || {};
+        window.google.visualization = window.google.visualization || {};
+        window.google.visualization.Query = window.google.visualization.Query || {};
+        window.google.visualization.Query.setResponse = function(data) {
+          cleanup();
+          try {
+            if (data.status !== 'ok') { throw new Error(data.errors?.[0]?.detailed_message || 'スプシ読み込みエラー'); }
+            const rows = data.table.rows || [];
+            const cards = rows.filter(row => row && row.c && row.c[1] && row.c[1].v).map(row => {
+              const v = i => (row.c[i] != null && row.c[i].v != null) ? row.c[i].v : '';
+              return { imageFile: String(v(0)).trim(), name: String(v(1)).trim(), type: String(v(2) || 'その他').trim(), civ: String(v(3) || '').trim(), cost: v(4), price: v(5), rush: v(6), updated: parseGVizDate(v(7)) };
+            });
+            resolve(cards);
+          } catch(e) { reject(e); }
+        };
+        script.onerror = () => { cleanup(); reject(new Error('スクリプト読み込み失敗')); };
+        script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=1&gid=0`;
+        document.head.appendChild(script);
+      });
+    }
+
+    async function loadData() {
+      try {
+        const cards = await fetchSheetData();
+        allCards = cards;
+        const dates = cards.map(c => c.updated).filter(Boolean);
+        if (dates.length) document.getElementById('lastUpdated').textContent = dates[dates.length - 1];
+        buildFilterBar(allCards);
+        renderCards();
+      } catch(e) {
+        document.getElementById('cardGrid').innerHTML = `<div class="error-msg">データの読み込みに失敗しました。<br><small>${e.message}</small><br><br><button onclick="loadData()" style="padding:8px 16px;cursor:pointer">再読み込み</button></div>`;
+      }
+    }
+
+    function onSearch(input) {
+      const q = input.value.trim();
+      document.getElementById('searchClear').style.display = q ? 'block' : 'none';
+      document.getElementById('searchIcon').style.display = q ? 'none' : 'block';
+      renderCards();
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('searchClear').style.display = 'none';
+      document.getElementById('searchIcon').style.display = 'block';
+      renderCards();
+    }
+
+    loadData();
+    setInterval(loadData, RELOAD_INTERVAL);
+  </script>
+</body>
+</html>
