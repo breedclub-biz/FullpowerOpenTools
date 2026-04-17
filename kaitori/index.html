@@ -67,6 +67,50 @@
     .footer { background: #222; color: #888; text-align: center; padding: 24px 16px; font-size: 12px; margin-top: 16px; }
     .footer a { color: #fff; text-decoration: none; }
     .footer .disclaimer { margin-top: 10px; font-size: 11px; color: #666; }
+
+    .card-item.selected { box-shadow: 0 0 0 3px #e74c3c, 0 4px 12px rgba(231,76,60,0.3); }
+    .card-count-badge { position: absolute; top: 5px; right: 5px; background: #e74c3c; color: #fff; font-size: 13px; font-weight: 900; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 13px; display: none; align-items: center; justify-content: center; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .card-item.selected .card-count-badge { display: flex; }
+    .card-minus-btn { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.75); color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; font-size: 18px; font-weight: 700; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 2; line-height: 1; padding: 0; }
+    .card-item.selected .card-minus-btn { display: flex; }
+
+    body.has-selection { padding-bottom: 88px; }
+    .selection-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #222; color: #fff; padding: 12px 16px; display: none; justify-content: space-between; align-items: center; gap: 12px; z-index: 100; box-shadow: 0 -4px 12px rgba(0,0,0,0.25); }
+    .selection-bar.visible { display: flex; }
+    .selection-info { flex: 1; min-width: 0; }
+    .selection-count { font-size: 11px; color: #aaa; }
+    .selection-total { font-size: 22px; font-weight: 900; line-height: 1.1; }
+    .selection-total .yen { font-size: 14px; margin-right: 2px; }
+    .selection-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .selection-btn { padding: 10px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .selection-btn.primary { background: #e74c3c; color: #fff; }
+    .selection-btn.secondary { background: #555; color: #fff; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: flex-start; z-index: 1000; overflow-y: auto; padding: 20px 12px; }
+    .modal-overlay.visible { display: flex; }
+    .modal-content { background: #fff; width: 100%; max-width: 460px; border-radius: 12px; overflow: hidden; position: relative; margin: auto; }
+    .modal-close { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.4); color: #fff; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; z-index: 2; }
+    .modal-header { background: #cc0000; color: #fff; text-align: center; padding: 18px 16px 14px; }
+    .modal-logo { height: 44px; width: auto; filter: brightness(0) invert(1); margin-bottom: 6px; }
+    .modal-title { font-size: 20px; font-weight: 900; letter-spacing: 3px; }
+    .modal-date { font-size: 11px; opacity: 0.85; margin-top: 4px; }
+    .modal-list { padding: 0; max-height: none; }
+    .modal-item { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid #eee; }
+    .modal-item-img { width: 44px; height: 58px; background: #eee; border-radius: 3px; object-fit: cover; }
+    .modal-item-info { min-width: 0; }
+    .modal-item-name { font-size: 12px; font-weight: 600; line-height: 1.35; }
+    .modal-item-unit { font-size: 10px; color: #888; margin-top: 2px; }
+    .modal-item-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .modal-item-qty { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
+    .modal-qty-btn { background: #eee; border: none; width: 24px; height: 24px; border-radius: 50%; font-size: 14px; font-weight: 700; cursor: pointer; line-height: 1; padding: 0; color: #333; }
+    .modal-item-subtotal { font-size: 14px; font-weight: 900; color: #cc0000; }
+    .modal-total { background: #222; color: #fff; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
+    .modal-total-label { font-size: 13px; font-weight: 700; }
+    .modal-total-amount { font-size: 28px; font-weight: 900; line-height: 1; }
+    .modal-total-amount .yen { font-size: 16px; margin-right: 2px; }
+    .modal-hint { background: #fffbea; color: #7a6500; padding: 10px 16px; font-size: 11px; text-align: center; border-top: 1px solid #f0e0a0; }
+    .modal-footer { padding: 10px 16px; text-align: center; font-size: 10px; color: #888; background: #fafafa; }
+    .modal-empty { padding: 30px 20px; text-align: center; color: #888; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -98,6 +142,35 @@
     <p style="margin-top:8px">買取に関するお問い合わせは <a href="#">公式LINE</a> または <a href="#">X (Twitter)</a> まで</p>
     <p class="disclaimer">在庫数、状態、相場等により予告なく変更となる場合がございます。予めご了承ください。</p>
   </div>
+
+  <div class="selection-bar" id="selectionBar">
+    <div class="selection-info">
+      <div class="selection-count" id="selectionCount">0枚選択中</div>
+      <div class="selection-total"><span class="yen">¥</span><span id="selectionTotal">0</span></div>
+    </div>
+    <div class="selection-actions">
+      <button class="selection-btn secondary" id="clearBtn">クリア</button>
+      <button class="selection-btn primary" id="summaryBtn">見積もりを表示</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="summaryModal">
+    <div class="modal-content">
+      <button class="modal-close" id="modalCloseBtn">✕</button>
+      <div class="modal-header">
+        <img src="logo.png" alt="FULL POWER" class="modal-logo">
+        <div class="modal-title">お見積もり</div>
+        <div class="modal-date" id="modalDate"></div>
+      </div>
+      <div class="modal-list" id="modalList"></div>
+      <div class="modal-total">
+        <div class="modal-total-label"><span id="modalTotalCount">0</span>枚 合計</div>
+        <div class="modal-total-amount"><span class="yen">¥</span><span id="modalTotalAmount">0</span></div>
+      </div>
+      <div class="modal-hint">この画面をスクリーンショットして、LINEまたはXでお送りください</div>
+      <div class="modal-footer">CARD SHOP FULL POWER｜秋葉原</div>
+    </div>
+  </div>
   <script>
     const SHEET_ID = '1KhMZrKqjZqtZVuJ2aC8UlF_xP4b5vbQF15NA-29h-l8';
     const IMAGE_BASE = 'images/';
@@ -113,6 +186,16 @@
     };
     let allCards = [];
     let currentFilter = 'all';
+    const selectedCards = new Map();
+
+    function cardId(card) { return `${card.name}|${card.type}`; }
+    function escapeAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function findCardById(id) { return allCards.find(c => cardId(c) === id); }
+    function getPriceNum(card) {
+      if (card.price === '' || card.price == null) return 0;
+      const num = typeof card.price === 'number' ? card.price : parseInt(String(card.price).replace(/[¥,\s]/g, ''));
+      return isNaN(num) ? 0 : num;
+    }
 
     function parseGVizDate(val) {
       if (!val) return '';
@@ -135,7 +218,11 @@
       const imgSrc = card.imageFile ? `${IMAGE_BASE}${card.imageFile}.jpg` : '';
       const imgTag = imgSrc ? `<img src="${imgSrc}" alt="${card.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : '';
       const noImgStyle = imgSrc ? 'style="display:none"' : 'style="display:flex"';
-      return `<div class="card-item" data-filter="${typeInfo.filter}" data-name="${card.name.toLowerCase()} ${card.type.toLowerCase()}">
+      const id = cardId(card);
+      const entry = selectedCards.get(id);
+      const count = entry ? entry.count : 0;
+      const selectedClass = count > 0 ? ' selected' : '';
+      return `<div class="card-item${selectedClass}" data-id="${escapeAttr(id)}" data-filter="${typeInfo.filter}" data-name="${card.name.toLowerCase()} ${card.type.toLowerCase()}">
         <div class="card-img">
           ${imgTag}
           <div class="no-image" ${noImgStyle}>画像<br>準備中</div>
@@ -143,6 +230,8 @@
             <span class="badge ${typeInfo.badge}">${card.type}</span>
             ${card.civ ? `<span class="badge badge-civ">${card.civ}</span>` : ''}
           </div>
+          <div class="card-count-badge">${count}</div>
+          <button class="card-minus-btn" data-action="minus" aria-label="1枚減らす">−</button>
         </div>
         <div class="card-info">
           <div class="card-name">${card.name}</div>
@@ -246,6 +335,139 @@
       document.getElementById('searchIcon').style.display = 'block';
       renderCards();
     }
+
+    function addCardById(id) {
+      const card = findCardById(id);
+      if (!card) return;
+      const entry = selectedCards.get(id);
+      if (entry) entry.count++;
+      else selectedCards.set(id, { card, count: 1 });
+      syncSelectionDom();
+    }
+
+    function removeCardById(id) {
+      const entry = selectedCards.get(id);
+      if (!entry) return;
+      entry.count--;
+      if (entry.count <= 0) selectedCards.delete(id);
+      syncSelectionDom();
+    }
+
+    function syncSelectionDom() {
+      document.querySelectorAll('.card-item').forEach(el => {
+        const id = el.dataset.id;
+        const entry = selectedCards.get(id);
+        const badge = el.querySelector('.card-count-badge');
+        if (entry) {
+          el.classList.add('selected');
+          if (badge) badge.textContent = entry.count;
+        } else {
+          el.classList.remove('selected');
+        }
+      });
+      updateSelectionBar();
+      if (document.getElementById('summaryModal').classList.contains('visible')) renderSummary();
+    }
+
+    function updateSelectionBar() {
+      const bar = document.getElementById('selectionBar');
+      let totalCount = 0, totalPrice = 0;
+      selectedCards.forEach(({ card, count }) => {
+        totalCount += count;
+        totalPrice += getPriceNum(card) * count;
+      });
+      if (totalCount > 0) {
+        bar.classList.add('visible');
+        document.body.classList.add('has-selection');
+      } else {
+        bar.classList.remove('visible');
+        document.body.classList.remove('has-selection');
+      }
+      document.getElementById('selectionCount').textContent = `${totalCount}枚選択中`;
+      document.getElementById('selectionTotal').textContent = totalPrice.toLocaleString('ja-JP');
+    }
+
+    function clearSelection() {
+      if (selectedCards.size === 0) return;
+      if (!confirm('選択をすべて解除しますか？')) return;
+      selectedCards.clear();
+      syncSelectionDom();
+    }
+
+    function openSummary() {
+      if (selectedCards.size === 0) return;
+      renderSummary();
+      document.getElementById('summaryModal').classList.add('visible');
+    }
+
+    function closeSummary() {
+      document.getElementById('summaryModal').classList.remove('visible');
+    }
+
+    function renderSummary() {
+      const list = document.getElementById('modalList');
+      let totalCount = 0, totalPrice = 0;
+      const items = [];
+      selectedCards.forEach(({ card, count }, id) => {
+        const unit = getPriceNum(card);
+        const subtotal = unit * count;
+        totalCount += count;
+        totalPrice += subtotal;
+        const imgSrc = card.imageFile ? `${IMAGE_BASE}${card.imageFile}.jpg` : '';
+        const imgTag = imgSrc
+          ? `<img src="${imgSrc}" alt="" class="modal-item-img" onerror="this.style.visibility='hidden'">`
+          : `<div class="modal-item-img"></div>`;
+        items.push(`<div class="modal-item" data-id="${escapeAttr(id)}">
+          ${imgTag}
+          <div class="modal-item-info">
+            <div class="modal-item-name">${card.name}</div>
+            <div class="modal-item-unit">${card.type}｜単価 ¥${formatPrice(unit)}</div>
+          </div>
+          <div class="modal-item-right">
+            <div class="modal-item-qty">
+              <button class="modal-qty-btn" data-action="minus" aria-label="1枚減らす">−</button>
+              <span>×${count}</span>
+              <button class="modal-qty-btn" data-action="plus" aria-label="1枚増やす">＋</button>
+            </div>
+            <div class="modal-item-subtotal">¥${formatPrice(subtotal)}</div>
+          </div>
+        </div>`);
+      });
+      list.innerHTML = items.length ? items.join('') : '<div class="modal-empty">選択されたカードはありません</div>';
+      document.getElementById('modalTotalCount').textContent = totalCount;
+      document.getElementById('modalTotalAmount').textContent = totalPrice.toLocaleString('ja-JP');
+      document.getElementById('modalDate').textContent = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    document.getElementById('cardGrid').addEventListener('click', function(e) {
+      const cardItem = e.target.closest('.card-item');
+      if (!cardItem) return;
+      const id = cardItem.dataset.id;
+      if (!id) return;
+      if (e.target.closest('[data-action="minus"]')) {
+        e.stopPropagation();
+        removeCardById(id);
+      } else {
+        addCardById(id);
+      }
+    });
+
+    document.getElementById('modalList').addEventListener('click', function(e) {
+      const btn = e.target.closest('.modal-qty-btn');
+      if (!btn) return;
+      const item = btn.closest('.modal-item');
+      if (!item) return;
+      const id = item.dataset.id;
+      if (btn.dataset.action === 'plus') addCardById(id);
+      else removeCardById(id);
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', clearSelection);
+    document.getElementById('summaryBtn').addEventListener('click', openSummary);
+    document.getElementById('modalCloseBtn').addEventListener('click', closeSummary);
+    document.getElementById('summaryModal').addEventListener('click', function(e) {
+      if (e.target === this) closeSummary();
+    });
 
     loadData();
     setInterval(loadData, RELOAD_INTERVAL);
