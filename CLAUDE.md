@@ -3,7 +3,9 @@
 FULLPOWER秋葉原店の**公開向け**コンテンツとツールを管理する Public リポジトリ。
 
 関連する非公開業務ツール・ドキュメントは `breedclub-biz/fullpower`（Private）側に分離している。
-リポジトリ分離の経緯・公開可否の判断は `~/dev/claude-config/memory/policy_repos_and_publication.md`（ユーザーレベル memory）を参照。
+
+- **リポジトリ分離方針・GitHubプラン運用**：`~/dev/claude-config/memory/policy_repos_and_publication.md`（横断memory）
+- **judge-qa の公開継続判断・DMCA撤退プラン**：`memory/judge_qa_publication.md`（本リポジトリ内）
 
 ---
 
